@@ -1,4 +1,15 @@
-import { ArrowUpRight, Plus, Sparkles, Users, Calendar, Play, Network } from 'lucide-react'
+import {
+  ArrowUpRight,
+  Plus,
+  Sparkles,
+  Users,
+  Calendar,
+  Play,
+  Network,
+  BookLock,
+  SplitSquareVertical,
+  AlertTriangle,
+} from 'lucide-react'
 import { ACCOUNTS, ACCOUNT_ORDER, type AccountId } from '../data/accounts'
 import { SESSIONS } from '../data/sessions'
 
@@ -6,6 +17,9 @@ type Props = {
   onStartCompose: (accountId: AccountId) => void
   onReplaySession: (accountId: AccountId) => void
   onGoWorkflow: () => void
+  onOpenKB: (accountId: AccountId) => void
+  onGoCompare: () => void
+  onGoRework: () => void
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -17,7 +31,14 @@ function Stat({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function Dashboard({ onStartCompose, onReplaySession, onGoWorkflow }: Props) {
+export function Dashboard({
+  onStartCompose,
+  onReplaySession,
+  onGoWorkflow,
+  onOpenKB,
+  onGoCompare,
+  onGoRework,
+}: Props) {
   const totalPending = ACCOUNT_ORDER.reduce(
     (sum, id) => sum + ACCOUNTS[id].stats.todayPending,
     0,
@@ -47,7 +68,21 @@ export function Dashboard({ onStartCompose, onReplaySession, onGoWorkflow }: Pro
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onGoCompare}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition"
+            >
+              <SplitSquareVertical size={14} />
+              一键对比差异化
+            </button>
+            <button
+              onClick={onGoRework}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition"
+            >
+              <AlertTriangle size={14} />
+              看一条失败样例
+            </button>
             <button
               onClick={onGoWorkflow}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition"
@@ -165,6 +200,19 @@ export function Dashboard({ onStartCompose, onReplaySession, onGoWorkflow }: Pro
                       </button>
                     )}
                   </div>
+
+                  <button
+                    onClick={() => onOpenKB(id)}
+                    className="mt-2 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11.5px] font-medium transition border"
+                    style={{
+                      color: a.accent,
+                      borderColor: a.accentLine,
+                      background: a.accentSoft,
+                    }}
+                  >
+                    <BookLock size={12} />
+                    查看该号 StyleKB · 长期记忆
+                  </button>
                 </div>
               </article>
             )
