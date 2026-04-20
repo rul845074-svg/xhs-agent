@@ -5,6 +5,12 @@ type Props = {
   detailKey: string | null
   onClose: () => void
   accent: string
+  playbackOverlay?: {
+    phaseLabel: string
+    note?: string
+    doneSummary: string
+    durationMs: number
+  } | null
 }
 
 const KIND_LABEL: Record<string, { tag: string; color: string }> = {
@@ -84,7 +90,7 @@ function ComponentBody({ d, accent }: { d: ComponentCard; accent: string }) {
   )
 }
 
-export function NodeDetailPanel({ detailKey, onClose, accent }: Props) {
+export function NodeDetailPanel({ detailKey, onClose, accent, playbackOverlay }: Props) {
   const detail: NodeDetail | undefined = detailKey ? NODE_DETAILS[detailKey] : undefined
   const open = detail != null
 
@@ -130,6 +136,34 @@ export function NodeDetailPanel({ detailKey, onClose, accent }: Props) {
             </div>
           </div>
           <div className="flex-1 overflow-y-auto px-6 py-5">
+            {playbackOverlay && (
+              <div
+                className="mb-5 rounded-lg px-3 py-2.5 border"
+                style={{
+                  background: `${accent}14`,
+                  borderColor: `${accent}55`,
+                }}
+              >
+                <div
+                  className="text-[10px] uppercase tracking-widest font-semibold mb-1 flex items-center gap-1.5"
+                  style={{ color: accent }}
+                >
+                  <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: accent }} />
+                  本次 Session · {playbackOverlay.phaseLabel}
+                  {playbackOverlay.note && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-400/30 font-semibold">
+                      {playbackOverlay.note}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[12.5px] text-neutral-200 leading-snug">
+                  {playbackOverlay.doneSummary}
+                </div>
+                <div className="text-[10.5px] text-neutral-500 mt-1">
+                  本阶段耗时 {(playbackOverlay.durationMs / 1000).toFixed(1)}s
+                </div>
+              </div>
+            )}
             {detail.kind === 'agent' ? (
               <SixFieldBody d={detail as SixFieldCard} accent={kindMeta.color} />
             ) : (

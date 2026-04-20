@@ -421,4 +421,236 @@ export const NODE_DETAILS: Record<string, NodeDetail> = {
       },
     ],
   },
+
+  'top-entry': {
+    kind: 'io',
+    title: 'PM 入口',
+    tagline: '图 ① 起点 · 触发方式三选',
+    fields: [
+      {
+        label: '触发方式',
+        value: [
+          '人工 · PM 在工作台点"新建一单"',
+          '定时 · Cron 按号排期（H5 可配）',
+          '外部 API · 运营系统推账号 ID + 毛选题',
+        ],
+      },
+      { label: '载荷', value: 'account_id ∈ {1,2,3} · topic_brief?（可选毛选题）· trace_id' },
+      { label: '下游', value: 'Router' },
+    ],
+  },
+
+  'top-router': {
+    kind: 'decision',
+    title: 'Router · 账号路由',
+    tagline: '按 account_id 分三路 · 不调 LLM · 纯逻辑',
+    fields: [
+      { label: '判据', value: 'account_id 精确匹配 {1,2,3}' },
+      {
+        label: '分流',
+        value: [
+          'id=1 → Load 号 1（INFP 日常）',
+          'id=2 → Load 号 2（极简发饰）',
+          'id=3 → Load 号 3（方法论）',
+        ],
+      },
+      {
+        label: '兜底',
+        value: 'id ∉ {1,2,3} → E001（未知账号 · 直接终止）',
+      },
+    ],
+  },
+
+  'top-load-1': {
+    kind: 'action',
+    title: 'Load 号 1 · INFP 日常',
+    tagline: '加载 1 号私有 KB + 长期记忆 · 初始化 Session',
+    fields: [
+      {
+        label: '读',
+        value: [
+          'StyleKB[1]（人设 / 爆款 / 视觉档案）',
+          'LongMem[1].方向胜率 + 爆款归因 + 策略有效性',
+        ],
+      },
+      { label: '写', value: 'Session 初始化（account_ctx · 不含业务产出）' },
+      { label: '下游', value: '移交图 ② Pipeline' },
+      { label: '兜底', value: 'KB IO 失败 → E003 · 格式非法 → E007' },
+    ],
+  },
+
+  'top-load-2': {
+    kind: 'action',
+    title: 'Load 号 2 · 极简发饰',
+    tagline: '加载 2 号私有 KB + 长期记忆',
+    fields: [
+      { label: '读', value: ['StyleKB[2]', 'LongMem[2]'] },
+      { label: '写', value: 'Session 初始化' },
+      { label: '下游', value: '移交图 ② Pipeline' },
+    ],
+  },
+
+  'top-load-3': {
+    kind: 'action',
+    title: 'Load 号 3 · 方法论',
+    tagline: '加载 3 号私有 KB + 长期记忆',
+    fields: [
+      { label: '读', value: ['StyleKB[3]', 'LongMem[3]'] },
+      { label: '写', value: 'Session 初始化' },
+      { label: '下游', value: '移交图 ② Pipeline' },
+    ],
+  },
+
+  'top-pipe-entry': {
+    kind: 'io',
+    title: '→ 图 ② Pipeline 入口',
+    tagline: '移交到 Agent 编排层',
+    fields: [
+      {
+        label: '移交载荷',
+        value: [
+          'account_ctx（由 Load 写入 Session）',
+          'topic_brief?（包装模式才有）',
+          'trace_id（跨图透传）',
+        ],
+      },
+      { label: '下游', value: '图 ② PM 选题方式判定' },
+    ],
+  },
+
+  'top-pipe-black': {
+    kind: 'product',
+    title: '图 ② Agent 编排黑盒',
+    tagline: '21 节点 · 4 核心 Agent · 切"图 ②"标签看详细',
+    fields: [
+      {
+        label: '内部大纲',
+        value: [
+          '选题 Agent（生成 / 包装 双模式）',
+          '人工 N 选 1（生成模式）· PM 确认（包装模式）',
+          '文案生成 Agent',
+          '自动打标动作',
+          '反 AI 化润色 Agent（≤ 3 轮）',
+          '封面生图 Agent + 封面机审',
+          '打包',
+        ],
+      },
+      {
+        label: '为何画成黑盒',
+        value: '顶层关心"谁路由 / 谁终审 / 谁发布"；节点细节在图 ②',
+      },
+    ],
+  },
+
+  'top-pipe-exit': {
+    kind: 'io',
+    title: '← 图 ② Pipeline 出口',
+    tagline: '收到发布就绪包 · 进入终审',
+    fields: [
+      {
+        label: '回传载荷',
+        value: [
+          '标题 + 分段正文 + 标签（含 #AI 辅助生成）',
+          '封面主图 + 备选 2-3',
+          'session 摘要（耗时 / 轮数 / unmapped_rules）',
+        ],
+      },
+      { label: '下游', value: 'Compliance' },
+    ],
+  },
+
+  'top-compliance': {
+    kind: 'decision',
+    title: 'Compliance · 合规终审',
+    tagline: '机审 · 广告 / 政策 / 版权 / 敏感词四检',
+    fields: [
+      {
+        label: '读',
+        value: [
+          'PolicyKB（敏感词 P\\d{3} + 广告法黑名单 + 版权黑名单）',
+          '版权 / 敏感词 第三方 API（H5 前选型）',
+        ],
+      },
+      { label: '写', value: 'Session.complianceFeedback · {blocked:[], warn:[]}' },
+      {
+        label: '分流',
+        value: [
+          '通过 → HumanReview',
+          '硬红线（真人肖像 / 政策禁区 / 版权）→ ReworkOut',
+        ],
+      },
+      {
+        label: '为何前置机审',
+        value: '机审 0.x 秒 · 人工 30 秒 · 先机审砍掉 80% 明显违规',
+      },
+    ],
+  },
+
+  'top-human-review': {
+    kind: 'human',
+    title: 'HumanReview · 人工终审',
+    tagline: '每单必过 · 30 秒通读 + 对比封面',
+    fields: [
+      {
+        label: '职责',
+        value: [
+          '通读文案是否自然（非机械）',
+          '封面 × 标题是否一致',
+          '确认 #AI 辅助生成 标签已加',
+        ],
+      },
+      {
+        label: '出口',
+        value: ['放行 → Output', '驳回 → ReworkOut（级联重做建议）'],
+      },
+      {
+        label: '为何不能合并机审',
+        value: '机审查"红线"· 人看"调性"· 两种能力不可替代',
+      },
+    ],
+  },
+
+  'top-rework': {
+    kind: 'error',
+    title: '驳回出口 · ReworkOut（图 ①）',
+    tagline: '与图 ② 共用一张驳回规则表',
+    fields: [
+      {
+        label: '两路入口',
+        value: [
+          'Compliance 硬红线（机审拦截）',
+          'HumanReview 驳回（人工不满意）',
+        ],
+      },
+      {
+        label: '级联建议',
+        value: '按"问题定位 → 依赖图 Agent"自动勾选要重做的节点',
+      },
+      {
+        label: '8 个驳回问题',
+        value: '详见图 ② 的 ReworkOut 卡（共用规则表）',
+      },
+    ],
+  },
+
+  'top-output': {
+    kind: 'terminal',
+    title: 'Output · 发布就绪',
+    tagline: '含 #AI 辅助生成 · 移交小红书平台',
+    fields: [
+      {
+        label: '产物',
+        value: [
+          '可复制发布文案（标题 + 正文 + 标签）',
+          '封面主图（+ 备选可切）',
+          'session 摘要归档',
+        ],
+      },
+      {
+        label: '落盘',
+        value: 'VersionRepo 永久版本 · LongMem 按 Session 级即时沉淀',
+      },
+      { label: '链路尾', value: '本号本单结束 · Router 可接下一单' },
+    ],
+  },
 }

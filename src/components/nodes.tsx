@@ -12,6 +12,9 @@ import {
 } from 'lucide-react'
 import type { WorkflowNodeData, NodeKind } from '../data/workflow'
 
+type PlaybackState = 'visited' | 'active' | 'pending'
+type PlayableData = WorkflowNodeData & { playback?: PlaybackState; accent?: string }
+
 type Palette = {
   accent: string
   border: string
@@ -112,23 +115,40 @@ function NodeBase({
   data,
   selected,
   kind,
-}: NodeProps & { kind: NodeKind; data: WorkflowNodeData }) {
+}: NodeProps & { kind: NodeKind; data: PlayableData }) {
   const p = PALETTES[kind]
   const Icon = ICONS[kind]
   const isSmall = kind === 'product'
+  const pb = data.playback
+  const playbackAccent = data.accent ?? '#34d399'
+
+  const shadow = (() => {
+    if (pb === 'active') {
+      return `0 0 0 2px ${playbackAccent}, 0 0 28px 6px ${playbackAccent}80, 0 8px 24px rgba(0,0,0,0.35)`
+    }
+    if (pb === 'visited') {
+      return `0 0 0 1.5px ${playbackAccent}66, 0 0 14px 2px ${playbackAccent}40, 0 4px 18px rgba(0,0,0,0.35)`
+    }
+    if (selected) {
+      return `0 0 0 1.5px ${p.accent}, 0 0 24px 2px ${p.accent}55, 0 8px 24px rgba(0,0,0,0.35)`
+    }
+    return '0 4px 18px rgba(0,0,0,0.35)'
+  })()
+
+  const opacity = pb === 'pending' ? 0.35 : 1
 
   return (
     <div
-      className="group relative rounded-xl backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5"
+      className="group relative rounded-xl backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5"
       style={{
         minWidth: isSmall ? 180 : 220,
         maxWidth: isSmall ? 210 : 250,
         padding: isSmall ? '8px 12px' : '10px 14px',
         border: `1px solid ${p.border}`,
         background: p.bg,
-        boxShadow: selected
-          ? `0 0 0 1.5px ${p.accent}, 0 0 24px 2px ${p.accent}55, 0 8px 24px rgba(0,0,0,0.35)`
-          : '0 4px 18px rgba(0,0,0,0.35)',
+        boxShadow: shadow,
+        opacity,
+        animation: pb === 'active' ? 'pulse-soft 1.6s ease-in-out infinite' : undefined,
       }}
     >
       <Handle
@@ -190,26 +210,26 @@ function NodeBase({
 
 export const nodeTypes = {
   agent: (props: NodeProps) => (
-    <NodeBase {...props} kind="agent" data={props.data as WorkflowNodeData} />
+    <NodeBase {...props} kind="agent" data={props.data as PlayableData} />
   ),
   human: (props: NodeProps) => (
-    <NodeBase {...props} kind="human" data={props.data as WorkflowNodeData} />
+    <NodeBase {...props} kind="human" data={props.data as PlayableData} />
   ),
   decision: (props: NodeProps) => (
-    <NodeBase {...props} kind="decision" data={props.data as WorkflowNodeData} />
+    <NodeBase {...props} kind="decision" data={props.data as PlayableData} />
   ),
   action: (props: NodeProps) => (
-    <NodeBase {...props} kind="action" data={props.data as WorkflowNodeData} />
+    <NodeBase {...props} kind="action" data={props.data as PlayableData} />
   ),
   product: (props: NodeProps) => (
-    <NodeBase {...props} kind="product" data={props.data as WorkflowNodeData} />
+    <NodeBase {...props} kind="product" data={props.data as PlayableData} />
   ),
-  io: (props: NodeProps) => <NodeBase {...props} kind="io" data={props.data as WorkflowNodeData} />,
+  io: (props: NodeProps) => <NodeBase {...props} kind="io" data={props.data as PlayableData} />,
   terminal: (props: NodeProps) => (
-    <NodeBase {...props} kind="terminal" data={props.data as WorkflowNodeData} />
+    <NodeBase {...props} kind="terminal" data={props.data as PlayableData} />
   ),
   error: (props: NodeProps) => (
-    <NodeBase {...props} kind="error" data={props.data as WorkflowNodeData} />
+    <NodeBase {...props} kind="error" data={props.data as PlayableData} />
   ),
 }
 
