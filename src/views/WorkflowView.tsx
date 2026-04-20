@@ -12,10 +12,11 @@ import {
   type Node,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { ArrowLeft, Play, Pause, RotateCcw, Layers, Waypoints } from 'lucide-react'
+import { ArrowLeft, Play, Pause, RotateCcw, Layers, Waypoints, Database } from 'lucide-react'
 
 import { WORKFLOW_NODES, WORKFLOW_EDGES, type WorkflowNodeData } from '../data/workflow'
 import { WORKFLOW_TOP_NODES, WORKFLOW_TOP_EDGES } from '../data/workflow-top'
+import { WORKFLOW_DATA_NODES, WORKFLOW_DATA_EDGES } from '../data/workflow-data'
 import { ACCOUNTS, DEFAULT_ACCOUNT, type AccountId } from '../data/accounts'
 import { SESSIONS, type AgentPhase, type AgentPhaseId } from '../data/sessions'
 import { nodeTypes } from '../components/nodes'
@@ -24,7 +25,7 @@ import { TopBar } from '../components/TopBar'
 
 type Props = { onBack: () => void }
 
-type Layer = 'top' | 'pipe'
+type Layer = 'top' | 'pipe' | 'data'
 
 const PLAYBACK_SEQUENCE: Array<{ nodeId: string; phaseId?: AgentPhaseId }> = [
   { nodeId: 'entry' },
@@ -60,6 +61,9 @@ export function WorkflowView({ onBack }: Props) {
   const [playing, setPlaying] = useState(false)
   const tickRef = useRef<number | null>(null)
 
+  // Hover highlight (only for data layer)
+  const [hoverId, setHoverId] = useState<string | null>(null)
+
   const account = ACCOUNTS[activeAccount]
   const accent = account.accent
   const session = SESSIONS[activeAccount]
@@ -69,7 +73,11 @@ export function WorkflowView({ onBack }: Props) {
     if (layer === 'top') {
       setNodes(cloneNodes(WORKFLOW_TOP_NODES))
       setEdges(cloneEdges(WORKFLOW_TOP_EDGES))
-      // kill any running playback
+      setPlaying(false)
+      setPlayIdx(-1)
+    } else if (layer === 'data') {
+      setNodes(cloneNodes(WORKFLOW_DATA_NODES))
+      setEdges(cloneEdges(WORKFLOW_DATA_EDGES))
       setPlaying(false)
       setPlayIdx(-1)
     } else {
@@ -77,6 +85,7 @@ export function WorkflowView({ onBack }: Props) {
       setEdges(cloneEdges(WORKFLOW_EDGES))
     }
     setSelectedDetailKey(null)
+    setHoverId(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layer])
 
@@ -85,6 +94,12 @@ export function WorkflowView({ onBack }: Props) {
     if (layer !== 'pipe') return
     paintPipeLayer(setNodes, setEdges, playIdx, accent)
   }, [layer, playIdx, accent, setNodes, setEdges])
+
+  // Paint hover highlight on data layer
+  useEffect(() => {
+    if (layer !== 'data') return
+    paintDataLayerHover(setNodes, setEdges, hoverId)
+  }, [layer, hoverId, setNodes, setEdges])
 
   // Advance playback tick
   useEffect(() => {
@@ -137,6 +152,16 @@ export function WorkflowView({ onBack }: Props) {
     setSelectedDetailKey(data.detailKey)
   }, [])
 
+  const onNodeMouseEnter: NodeMouseHandler = useCallback(
+    (_, node) => {
+      if (layer === 'data') setHoverId(node.id)
+    },
+    [layer],
+  )
+  const onNodeMouseLeave: NodeMouseHandler = useCallback(() => {
+    if (layer === 'data') setHoverId(null)
+  }, [layer])
+
   const onPaneClick = useCallback(() => setSelectedDetailKey(null), [])
 
   const miniMapNodeColor = useCallback((node: { data?: unknown }) => {
@@ -151,6 +176,11 @@ export function WorkflowView({ onBack }: Props) {
       case 'io': return '#0ea5e9'
       case 'terminal': return '#14b8a6'
       case 'error': return '#f43f5e'
+      case 'kb-private': return '#c084fc'
+      case 'kb-shared': return '#22d3ee'
+      case 'memory': return '#f97316'
+      case 'repo': return '#6366f1'
+      case 'bus': return '#ec4899'
       default: return '#52525b'
     }
   }, [])
@@ -192,6 +222,8 @@ export function WorkflowView({ onBack }: Props) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClick}
+        onNodeMouseEnter={onNodeMouseEnter}
+        onNodeMouseLeave={onNodeMouseLeave}
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
@@ -245,6 +277,8 @@ export function WorkflowView({ onBack }: Props) {
 
       <LayerTabs layer={layer} onChange={setLayer} accent={accent} />
 
+      {layer === 'data' && <DataHint />}
+
       {layer === 'pipe' && (
         <PlaybackDock
           accent={accent}
@@ -269,9 +303,11 @@ export function WorkflowView({ onBack }: Props) {
 
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
         <div className="px-4 py-2 rounded-full bg-neutral-900/80 backdrop-blur-md border border-neutral-800 text-[11px] text-neutral-400">
-          {layer === 'top'
-            ? '设计视角 · 图 ① 顶层路由 · 点节点看详情'
-            : '设计视角 · 图 ② Agent 编排 · 点节点看六字段卡 · 可回放本号 Session'}
+          {layer === 'top' && '设计视角 · 图 ① 顶层路由 · 点节点看详情'}
+          {layer === 'pipe' &&
+            '设计视角 · 图 ② Agent 编排 · 点节点看六字段卡 · 可回放本号 Session'}
+          {layer === 'data' &&
+            '设计视角 · 图 ③ 数据与知识层 · 悬停节点看读写关系 · R=读 W=写'}
         </div>
       </div>
     </div>
@@ -305,6 +341,47 @@ function LayerTabs({
       >
         图 ② Agent 编排
       </TabBtn>
+      <TabBtn
+        active={layer === 'data'}
+        accent={accent}
+        onClick={() => onChange('data')}
+        icon={<Database size={13} />}
+      >
+        图 ③ 数据与知识
+      </TabBtn>
+    </div>
+  )
+}
+
+function DataHint() {
+  return (
+    <div className="absolute top-20 right-4 z-20 w-[300px] rounded-xl bg-neutral-900/90 backdrop-blur-md border border-neutral-800 p-3.5">
+      <div className="text-[10px] uppercase tracking-widest font-semibold text-neutral-400 mb-2">
+        图 ③ 读图指南
+      </div>
+      <div className="space-y-1.5 text-[11.5px] text-neutral-300 leading-relaxed">
+        <div>
+          <span className="inline-block w-6 text-center text-[10px] font-bold text-neutral-400 bg-neutral-800 rounded px-1 mr-1.5">
+            R
+          </span>
+          读关系 · 虚线
+        </div>
+        <div>
+          <span className="inline-block w-6 text-center text-[10px] font-bold text-emerald-400 bg-emerald-950/60 rounded px-1 mr-1.5">
+            W
+          </span>
+          写关系 · 实线
+        </div>
+        <div>
+          <span className="inline-block w-6 text-center text-[10px] font-bold text-pink-300 bg-pink-950/60 rounded px-1 mr-1.5">
+            RW
+          </span>
+          读写 · 粉色线
+        </div>
+      </div>
+      <div className="mt-2.5 pt-2.5 border-t border-neutral-800 text-[11px] text-neutral-400 leading-relaxed">
+        悬停任意节点 · 其他连线淡出 · 只留相关读写
+      </div>
     </div>
   )
 }
@@ -530,4 +607,41 @@ function restoreEdge(e: Edge): Edge {
     style: { ...(orig.style ?? {}) },
     labelStyle: undefined,
   }
+}
+
+function paintDataLayerHover(
+  _setNodes: (updater: (nds: Node<WorkflowNodeData>[]) => Node<WorkflowNodeData>[]) => void,
+  setEdges: (updater: (eds: Edge[]) => Edge[]) => void,
+  hoverId: string | null,
+) {
+  const origMap = new Map(WORKFLOW_DATA_EDGES.map((e) => [e.id, e]))
+  setEdges((eds) =>
+    eds.map((e) => {
+      const orig = origMap.get(e.id)
+      const baseStyle = orig?.style ?? e.style ?? {}
+      const baseLabelStyle = orig?.labelStyle ?? e.labelStyle
+      if (!hoverId) {
+        return {
+          ...e,
+          animated: false,
+          style: { ...baseStyle, strokeOpacity: 1 },
+          labelStyle: baseLabelStyle,
+        }
+      }
+      const related = e.source === hoverId || e.target === hoverId
+      return {
+        ...e,
+        animated: related,
+        style: {
+          ...baseStyle,
+          strokeOpacity: related ? 1 : 0.1,
+          strokeWidth: related ? 2.4 : baseStyle.strokeWidth,
+        },
+        labelStyle: {
+          ...(baseLabelStyle ?? {}),
+          opacity: related ? 1 : 0.15,
+        },
+      }
+    }),
+  )
 }

@@ -11,6 +11,11 @@ const LEGEND_COLORS: Record<NodeKind, string> = {
   io: '#38bdf8',
   terminal: '#5eead4',
   error: '#fb7185',
+  'kb-private': '#d8b4fe',
+  'kb-shared': '#67e8f9',
+  memory: '#fdba74',
+  repo: '#a5b4fc',
+  bus: '#f9a8d4',
 }
 
 type Props = {

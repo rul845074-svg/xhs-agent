@@ -8,6 +8,11 @@ import {
   Package as PackageIcon,
   Waypoints,
   ShieldAlert,
+  BookLock,
+  BookOpen,
+  Brain,
+  Archive,
+  Radio,
   type LucideIcon,
 } from 'lucide-react'
 import type { WorkflowNodeData, NodeKind } from '../data/workflow'
@@ -98,6 +103,51 @@ const PALETTES: Record<NodeKind, Palette> = {
     tag: 'REJECT SINK',
     tagColor: '#fb7185',
   },
+  'kb-private': {
+    accent: '#c084fc',
+    border: 'rgba(192, 132, 252, 0.5)',
+    bg: 'linear-gradient(135deg, rgba(192,132,252,0.12) 0%, rgba(192,132,252,0.03) 100%)',
+    iconBg: 'rgba(192, 132, 252, 0.22)',
+    iconColor: '#d8b4fe',
+    tag: 'KB · 号隔离',
+    tagColor: '#d8b4fe',
+  },
+  'kb-shared': {
+    accent: '#22d3ee',
+    border: 'rgba(34, 211, 238, 0.5)',
+    bg: 'linear-gradient(135deg, rgba(34,211,238,0.12) 0%, rgba(34,211,238,0.03) 100%)',
+    iconBg: 'rgba(34, 211, 238, 0.22)',
+    iconColor: '#67e8f9',
+    tag: 'KB · 共享',
+    tagColor: '#67e8f9',
+  },
+  memory: {
+    accent: '#f97316',
+    border: 'rgba(249, 115, 22, 0.5)',
+    bg: 'linear-gradient(135deg, rgba(249,115,22,0.12) 0%, rgba(249,115,22,0.03) 100%)',
+    iconBg: 'rgba(249, 115, 22, 0.22)',
+    iconColor: '#fdba74',
+    tag: 'LONG-MEM · 号隔离',
+    tagColor: '#fdba74',
+  },
+  repo: {
+    accent: '#6366f1',
+    border: 'rgba(99, 102, 241, 0.5)',
+    bg: 'linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(99,102,241,0.03) 100%)',
+    iconBg: 'rgba(99, 102, 241, 0.22)',
+    iconColor: '#a5b4fc',
+    tag: 'VERSION REPO',
+    tagColor: '#a5b4fc',
+  },
+  bus: {
+    accent: '#ec4899',
+    border: 'rgba(236, 72, 153, 0.5)',
+    bg: 'linear-gradient(135deg, rgba(236,72,153,0.12) 0%, rgba(236,72,153,0.03) 100%)',
+    iconBg: 'rgba(236, 72, 153, 0.22)',
+    iconColor: '#f9a8d4',
+    tag: 'SESSION BUS',
+    tagColor: '#f9a8d4',
+  },
 }
 
 const ICONS: Record<NodeKind, LucideIcon> = {
@@ -109,6 +159,11 @@ const ICONS: Record<NodeKind, LucideIcon> = {
   io: Waypoints,
   terminal: PackageIcon,
   error: ShieldAlert,
+  'kb-private': BookLock,
+  'kb-shared': BookOpen,
+  memory: Brain,
+  repo: Archive,
+  bus: Radio,
 }
 
 function NodeBase({
@@ -231,6 +286,21 @@ export const nodeTypes = {
   error: (props: NodeProps) => (
     <NodeBase {...props} kind="error" data={props.data as PlayableData} />
   ),
+  'kb-private': (props: NodeProps) => (
+    <NodeBase {...props} kind="kb-private" data={props.data as PlayableData} />
+  ),
+  'kb-shared': (props: NodeProps) => (
+    <NodeBase {...props} kind="kb-shared" data={props.data as PlayableData} />
+  ),
+  memory: (props: NodeProps) => (
+    <NodeBase {...props} kind="memory" data={props.data as PlayableData} />
+  ),
+  repo: (props: NodeProps) => (
+    <NodeBase {...props} kind="repo" data={props.data as PlayableData} />
+  ),
+  bus: (props: NodeProps) => (
+    <NodeBase {...props} kind="bus" data={props.data as PlayableData} />
+  ),
 }
 
 export const NODE_LEGEND: Array<{ kind: NodeKind; label: string; desc: string }> = [
@@ -242,4 +312,12 @@ export const NODE_LEGEND: Array<{ kind: NodeKind; label: string; desc: string }>
   { kind: 'io', label: 'Pipeline I/O', desc: '与图 ① 衔接' },
   { kind: 'terminal', label: 'Package', desc: '发布就绪包' },
   { kind: 'error', label: 'Reject Sink', desc: '→ 驳回规则表' },
+]
+
+export const DATA_LEGEND: Array<{ kind: NodeKind; label: string; desc: string }> = [
+  { kind: 'kb-private', label: 'KB · 号隔离', desc: 'StyleKB × 3 按号路由' },
+  { kind: 'kb-shared', label: 'KB · 共享', desc: 'AntiAIKB / PolicyKB' },
+  { kind: 'memory', label: 'LongMem', desc: '号隔离 · 8 枚举策略库' },
+  { kind: 'repo', label: 'VersionRepo', desc: '版本仓 · 按 Session 隔离' },
+  { kind: 'bus', label: 'Session', desc: '跨 Agent 上下文总线' },
 ]

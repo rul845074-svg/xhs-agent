@@ -9,6 +9,11 @@ export type NodeKind =
   | 'product'
   | 'terminal'
   | 'error'
+  | 'kb-private'
+  | 'kb-shared'
+  | 'memory'
+  | 'repo'
+  | 'bus'
 
 export type WorkflowNodeData = {
   label: string

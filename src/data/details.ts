@@ -653,4 +653,186 @@ export const NODE_DETAILS: Record<string, NodeDetail> = {
       { label: '链路尾', value: '本号本单结束 · Router 可接下一单' },
     ],
   },
+
+  'data-stylekb': {
+    kind: 'product',
+    title: 'StyleKB · 人设库（号隔离）',
+    tagline: '每账号 1 份 · Router 按 account_id 路由 · 绝不混号',
+    fields: [
+      {
+        label: '结构',
+        value: [
+          '人设（身份 / 口吻 / 禁区）',
+          '爆款文案样本（标题 / 正文模板 / 胜率）',
+          '语言风格（句式长短 / 标点偏好 / 表情使用）',
+          '目标人群（年龄 / 场景 / 痛点）',
+          '视觉档案（配色 HEX[] / 版式 / 字体倾向）',
+        ],
+      },
+      {
+        label: '谁读',
+        value: [
+          '选题 Agent · 人设 / 目标人群',
+          '文案 Agent · 人设 / 爆款 / 语言风格',
+          '封面 Agent · 视觉档案',
+        ],
+      },
+      {
+        label: '谁写',
+        value: '仅 PM 维护（线下编辑 · 不由 Agent 回写）',
+      },
+      {
+        label: '健壮性',
+        value: 'Integrity Check · IO 失败 → E003 · 格式非法 → E007',
+      },
+    ],
+  },
+
+  'data-longmem': {
+    kind: 'product',
+    title: 'LongMem · 长期记忆（号隔离）',
+    tagline: '跨 Session 累积 · 8 枚举策略 · L\\d{3} 编号',
+    fields: [
+      {
+        label: '结构',
+        value: [
+          '方向胜率（近 30 天维度）',
+          '爆款归因（哪些角度 / 结构转化高）',
+          '策略有效性（8 枚举 · 反 AI 化手法）',
+          '失败阈值（连 3 次失败 → 上浮）',
+        ],
+      },
+      {
+        label: '谁读',
+        value: [
+          '选题 Agent · 方向胜率 + 爆款归因',
+          '反 AI Agent · 策略有效性 + 失败阈值',
+        ],
+      },
+      {
+        label: '谁写',
+        value: 'Output 后台任务按 Session 级即时沉淀（胜率、unmapped_rules 累积）',
+      },
+      {
+        label: '降级',
+        value: 'IO 失败 → meta.longmem_degraded=true 不降级主链路',
+      },
+    ],
+  },
+
+  'data-antiaikb': {
+    kind: 'product',
+    title: 'AntiAIKB · 反 AI 化痕迹库（共享）',
+    tagline: '全局共享 · 反 AI 化 Agent 唯一专用 · R\\d{3} 规则表',
+    fields: [
+      {
+        label: '结构',
+        value: [
+          '痕迹特征库（R003/R017/R042 · LLM 语义自评）',
+          '改写规则表（mappings · 每条规则对应改写策略）',
+          'unmapped_rules 观测槽（累计 ≥ 3 触发 T6 人工补）',
+        ],
+      },
+      {
+        label: '谁读',
+        value: '反 AI 化 Agent（唯一）',
+      },
+      {
+        label: '谁写',
+        value: '人工 · T6 任务按 unmapped_rules 补 mapping',
+      },
+      {
+        label: '为何共享',
+        value: '痕迹是模型层面特征 · 不随账号人设变 · 3 号复用',
+      },
+    ],
+  },
+
+  'data-policykb': {
+    kind: 'product',
+    title: 'PolicyKB · 合规规则库（共享）',
+    tagline: '全局共享 · 敏感词 / 广告法 / 版权黑名单 · P\\d{3}',
+    fields: [
+      {
+        label: '结构',
+        value: [
+          '敏感词 P\\d{3}（政策 / 擦边 / 歧义）',
+          '广告法黑名单（最 / 唯一 / 根治 等）',
+          '版权黑名单（知名 IP / 真人肖像库）',
+          'AI 标签规则（#AI 辅助生成 触发条件）',
+        ],
+      },
+      {
+        label: '谁读',
+        value: [
+          '自动打标动作 · AI 标签规则',
+          'Compliance 合规终审 · 敏感词 + 广告法 + 版权',
+          '封面机审 · 敏感词 + 版权',
+        ],
+      },
+      {
+        label: '谁写',
+        value: '合规 / 法务团队人工维护',
+      },
+    ],
+  },
+
+  'data-repo': {
+    kind: 'product',
+    title: 'VersionRepo · 版本仓（按 Session 隔离）',
+    tagline: '每次改写都留版本 · 支持 diff · 驳回时按段重做',
+    fields: [
+      {
+        label: '结构',
+        value: [
+          '选题版本 v1…vN（Topic Agent 产出）',
+          '文案版本 v1…vN（Copy + AntiAI 每轮）',
+          '封面版本 v1…vN（主图 + 备选）',
+          '版本对比 diff（meta）',
+        ],
+      },
+      {
+        label: '谁读',
+        value: '反 AI Agent · 版本对比 / 封面 Agent · 版本对比',
+      },
+      {
+        label: '谁写',
+        value: '选题 / 文案 / 反 AI / 封面 4 个 Agent 都写',
+      },
+      {
+        label: '为何 Session 隔离',
+        value: '版本只对当次请求有意义 · Output 后只留最终版进 LongMem',
+      },
+    ],
+  },
+
+  'data-session': {
+    kind: 'product',
+    title: 'Session · 跨 Agent 上下文总线',
+    tagline: '单次请求内活动 · 所有 Agent 的"公用黑板"',
+    fields: [
+      {
+        label: '结构',
+        value: [
+          'account_ctx（Load 时写入）',
+          'overrides[]（软偏好覆盖 · H5 外暴）',
+          'antiAIFeedback[]（机审轮次 + 问题句子列表）',
+          'coverAuditFeedback（封面机审结果）',
+          'complianceFeedback（终审结果）',
+        ],
+      },
+      {
+        label: '读写权',
+        value: '所有 Agent 可读 · 同一字段只由产出 Agent 写（避免竞态）',
+      },
+      {
+        label: '关键字段',
+        value: 'antiAIFeedback 是反 AI Agent 多轮自学的核心（读上次拒绝理由）',
+      },
+      {
+        label: '生命周期',
+        value: '从 Load 初始化 · 到 Output 归档后释放',
+      },
+    ],
+  },
 }
